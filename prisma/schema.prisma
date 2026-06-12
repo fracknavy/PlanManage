@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String?
+  avatarUrl             String?
+  defaultWorkStartTime  String    @default("09:00")
+  defaultWorkEndTime    String    @default("18:00")
+  defaultBreakDuration  Int       @default(15) // minutes
+  defaultTaskWeight     Int       @default(5) // 1-10
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tasks                 Task[]
+  schedules             Schedule[]
+  linkParses            LinkParse[]
+}
+
+model Task {
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  estimatedTime Int         // minutes
+  weight        Int         @default(5) // 1-10
+  priority      Priority   @default(MEDIUM)
+  dueDate       DateTime?
+  status        TaskStatus  @default(NOT_STARTED)
+  type          TaskType    @default(OTHER)
+  isFixed       Boolean     @default(false)
+  fixedStart    DateTime?   // if fixed, when it starts
+  fixedEnd      DateTime?   // if fixed, when it ends
+  sourceUrl     String?
+  parentId      String?
+  isRecurring   Boolean     @default(false)
+  recurrenceRule String?   // iCal RRULE format
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  parent        Task?       @relation("TaskHierarchy", fields: [parentId], references: [id])
+  children      Task[]      @relation("TaskHierarchy")
+  scheduleItems ScheduleItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Schedule {
+  id          String      @id @default(cuid())
+  date        DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  items       ScheduleItem[]
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model ScheduleItem {
+  id          String      @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  isBreak     Boolean     @default(false)
+  order       Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  schedule    Schedule    @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  scheduleId  String
+  task        Task?       @relation(fields: [taskId], references: [id])
+  taskId      String?
+
+  @@index([scheduleId])
+  @@index([taskId])
+}
+
+model LinkParse {
+  id          String      @id @default(cuid())
+  url         String
+  title       String?
+  description String?
+  image       String?
+  favicon     String?
+  parsedAt    DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+
+  @@index([userId])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum TaskType {
+  WORK
+  STUDY
+  PERSONAL
+  HEALTH
+  OTHER
+}
