@@ -39,13 +39,15 @@ import {
 import { Schedule, ScheduleItem, Task } from "@/types";
 import { formatDate, formatTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { BreakTimer } from "@/components/schedule/break-timer";
 
 interface SortableItemProps {
   item: ScheduleItem;
   onComplete?: (taskId: string) => void;
+  onSkipBreak?: (itemId: string) => void;
 }
 
-function SortableItem({ item, onComplete }: SortableItemProps) {
+function SortableItem({ item, onComplete, onSkipBreak }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -107,15 +109,26 @@ function SortableItem({ item, onComplete }: SortableItemProps) {
         )}
       </div>
 
-      {!item.isBreak && item.taskId && onComplete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onComplete(item.taskId!)}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-        </Button>
-      )}
+      <div className="flex items-center space-x-2">
+        {item.isBreak && onSkipBreak && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSkipBreak(item.id)}
+          >
+            跳过
+          </Button>
+        )}
+        {!item.isBreak && item.taskId && onComplete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onComplete(item.taskId!)}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -300,6 +313,7 @@ export default function SchedulePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeBreak, setActiveBreak] = useState<ScheduleItem | null>(null);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -466,6 +480,33 @@ export default function SchedulePage() {
     }
   };
 
+  const handleSkipBreak = async (itemId: string) => {
+    try {
+      const response = await fetch(`/api/schedule/items/${itemId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "已跳过休息",
+          description: "休息时间已移除",
+        });
+        fetchSchedule();
+      }
+    } catch (error) {
+      toast({
+        title: "错误",
+        description: "跳过休息失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBreakEnd = () => {
+    setActiveBreak(null);
+    fetchSchedule();
+  };
+
   // 获取当前周的日期列表
   const getWeekDates = () => {
     const dates: Date[] = [];
@@ -546,6 +587,25 @@ export default function SchedulePage() {
           </Button>
         </div>
 
+        {/* 休息时间管理 */}
+        {activeBreak && (
+          <BreakTimer
+            duration={
+              Math.round(
+                (new Date(activeBreak.endTime).getTime() -
+                  new Date(activeBreak.startTime).getTime()) /
+                  60000
+              )
+            }
+            onBreakEnd={handleBreakEnd}
+            onSkip={() => {
+              handleSkipBreak(activeBreak.id);
+              setActiveBreak(null);
+            }}
+            autoStart
+          />
+        )}
+
         <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")}>
           <div className="flex items-center justify-between">
             <TabsList>
@@ -616,6 +676,11 @@ export default function SchedulePage() {
                             onComplete={
                               item.taskId
                                 ? () => handleCompleteTask(item.taskId!)
+                                : undefined
+                            }
+                            onSkipBreak={
+                              item.isBreak
+                                ? () => handleSkipBreak(item.id)
                                 : undefined
                             }
                           />

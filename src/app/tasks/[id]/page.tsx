@@ -17,14 +17,25 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Repeat } from "lucide-react";
 import Link from "next/link";
+import { Task } from "@/types";
+import { SubtaskList } from "@/components/tasks/subtask-list";
+import { createRecurrenceRule, parseRecurrenceRule, RecurrenceFrequency } from "@/lib/recurrence";
 
 export default function EditTaskPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [parentTasks, setParentTasks] = useState<Task[]>([]);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceConfig, setRecurrenceConfig] = useState({
+    frequency: "daily" as RecurrenceFrequency,
+    interval: 1,
+    count: 0,
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -35,17 +46,33 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     isFixed: false,
     dueDate: "",
     sourceUrl: "",
+    parentId: "",
   });
 
   useEffect(() => {
     fetchTask();
+    fetchParentTasks();
   }, [params.id]);
+
+  const fetchParentTasks = async () => {
+    try {
+      const response = await fetch("/api/tasks");
+      if (response.ok) {
+        const data = await response.json();
+        // 只显示没有父任务的任务作为可选父任务，排除当前任务
+        setParentTasks(data.filter((task: Task) => !task.parentId && task.id !== params.id));
+      }
+    } catch (error) {
+      console.error("Fetch tasks error:", error);
+    }
+  };
 
   const fetchTask = async () => {
     try {
       const response = await fetch(`/api/tasks/${params.id}`);
       if (response.ok) {
         const task = await response.json();
+        setCurrentTask(task);
         setFormData({
           title: task.title,
           description: task.description || "",
@@ -58,7 +85,26 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
             ? new Date(task.dueDate).toISOString().slice(0, 16)
             : "",
           sourceUrl: task.sourceUrl || "",
+          parentId: task.parentId || "",
         });
+
+        // 加载重复任务配置
+        if (task.isRecurring && task.recurrenceRule) {
+          setIsRecurring(true);
+          const rule = parseRecurrenceRule(task.recurrenceRule);
+          if (rule) {
+            const options = rule.options;
+            let frequency: RecurrenceFrequency = "daily";
+            if (options.freq === 2) frequency = "weekly";
+            if (options.freq === 3) frequency = "monthly";
+
+            setRecurrenceConfig({
+              frequency,
+              interval: options.interval || 1,
+              count: options.count || 0,
+            });
+          }
+        }
       } else {
         throw new Error("获取任务失败");
       }
@@ -79,6 +125,15 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     setIsSaving(true);
 
     try {
+      let recurrenceRule = null;
+      if (isRecurring) {
+        recurrenceRule = createRecurrenceRule({
+          frequency: recurrenceConfig.frequency,
+          interval: recurrenceConfig.interval,
+          count: recurrenceConfig.count > 0 ? recurrenceConfig.count : undefined,
+        });
+      }
+
       const response = await fetch(`/api/tasks/${params.id}`, {
         method: "PATCH",
         headers: {
@@ -87,6 +142,9 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           ...formData,
           dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+          parentId: formData.parentId || null,
+          isRecurring,
+          recurrenceRule,
         }),
       });
 
@@ -268,6 +326,113 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>父任务（可选）</Label>
+                <Select
+                  value={formData.parentId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, parentId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择父任务（创建子任务）" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">无父任务</SelectItem>
+                    {parentTasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id}>
+                        {task.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  选择父任务后，此任务将作为子任务
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isRecurring"
+                    checked={isRecurring}
+                    onCheckedChange={setIsRecurring}
+                  />
+                  <Label htmlFor="isRecurring" className="flex items-center gap-2">
+                    <Repeat className="h-4 w-4" />
+                    重复任务
+                  </Label>
+                </div>
+
+                {isRecurring && (
+                  <Card className="p-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>重复频率</Label>
+                        <Select
+                          value={recurrenceConfig.frequency}
+                          onValueChange={(value) =>
+                            setRecurrenceConfig({
+                              ...recurrenceConfig,
+                              frequency: value as RecurrenceFrequency,
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">每天</SelectItem>
+                            <SelectItem value="weekly">每周</SelectItem>
+                            <SelectItem value="monthly">每月</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>间隔</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={recurrenceConfig.interval}
+                            onChange={(e) =>
+                              setRecurrenceConfig({
+                                ...recurrenceConfig,
+                                interval: parseInt(e.target.value) || 1,
+                              })
+                            }
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            每 {recurrenceConfig.interval}{" "}
+                            {recurrenceConfig.frequency === "daily"
+                              ? "天"
+                              : recurrenceConfig.frequency === "weekly"
+                              ? "周"
+                              : "月"}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>重复次数（0为无限）</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={recurrenceConfig.count}
+                            onChange={(e) =>
+                              setRecurrenceConfig({
+                                ...recurrenceConfig,
+                                count: parseInt(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isFixed"
@@ -290,6 +455,23 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
             </CardContent>
           </form>
         </Card>
+
+        {/* 子任务列表 */}
+        {currentTask && currentTask.children && currentTask.children.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>子任务</CardTitle>
+              <CardDescription>管理此任务的子任务</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SubtaskList
+                parentTaskId={currentTask.id}
+                subtasks={currentTask.children}
+                onSubtaskUpdate={fetchTask}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AuthenticatedLayout>
   );

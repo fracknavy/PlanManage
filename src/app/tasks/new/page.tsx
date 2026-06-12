@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,13 +17,22 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Repeat } from "lucide-react";
 import Link from "next/link";
+import { Task } from "@/types";
+import { createRecurrenceRule, RecurrenceFrequency } from "@/lib/recurrence";
 
 export default function NewTaskPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [parentTasks, setParentTasks] = useState<Task[]>([]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceConfig, setRecurrenceConfig] = useState({
+    frequency: "daily" as RecurrenceFrequency,
+    interval: 1,
+    count: 0,
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -34,13 +43,40 @@ export default function NewTaskPage() {
     isFixed: false,
     dueDate: "",
     sourceUrl: "",
+    parentId: "",
   });
+
+  useEffect(() => {
+    fetchParentTasks();
+  }, []);
+
+  const fetchParentTasks = async () => {
+    try {
+      const response = await fetch("/api/tasks");
+      if (response.ok) {
+        const data = await response.json();
+        // 只显示没有父任务的任务作为可选父任务
+        setParentTasks(data.filter((task: Task) => !task.parentId));
+      }
+    } catch (error) {
+      console.error("Fetch tasks error:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      let recurrenceRule = null;
+      if (isRecurring) {
+        recurrenceRule = createRecurrenceRule({
+          frequency: recurrenceConfig.frequency,
+          interval: recurrenceConfig.interval,
+          count: recurrenceConfig.count > 0 ? recurrenceConfig.count : undefined,
+        });
+      }
+
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
@@ -49,6 +85,9 @@ export default function NewTaskPage() {
         body: JSON.stringify({
           ...formData,
           dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+          parentId: formData.parentId || null,
+          isRecurring,
+          recurrenceRule,
         }),
       });
 
@@ -218,6 +257,113 @@ export default function NewTaskPage() {
                     setFormData({ ...formData, sourceUrl: e.target.value })
                   }
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>父任务（可选）</Label>
+                <Select
+                  value={formData.parentId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, parentId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择父任务（创建子任务）" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">无父任务</SelectItem>
+                    {parentTasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id}>
+                        {task.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  选择父任务后，此任务将作为子任务
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isRecurring"
+                    checked={isRecurring}
+                    onCheckedChange={setIsRecurring}
+                  />
+                  <Label htmlFor="isRecurring" className="flex items-center gap-2">
+                    <Repeat className="h-4 w-4" />
+                    重复任务
+                  </Label>
+                </div>
+
+                {isRecurring && (
+                  <Card className="p-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>重复频率</Label>
+                        <Select
+                          value={recurrenceConfig.frequency}
+                          onValueChange={(value) =>
+                            setRecurrenceConfig({
+                              ...recurrenceConfig,
+                              frequency: value as RecurrenceFrequency,
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">每天</SelectItem>
+                            <SelectItem value="weekly">每周</SelectItem>
+                            <SelectItem value="monthly">每月</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>间隔</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={recurrenceConfig.interval}
+                            onChange={(e) =>
+                              setRecurrenceConfig({
+                                ...recurrenceConfig,
+                                interval: parseInt(e.target.value) || 1,
+                              })
+                            }
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            每 {recurrenceConfig.interval}{" "}
+                            {recurrenceConfig.frequency === "daily"
+                              ? "天"
+                              : recurrenceConfig.frequency === "weekly"
+                              ? "周"
+                              : "月"}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>重复次数（0为无限）</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={recurrenceConfig.count}
+                            onChange={(e) =>
+                              setRecurrenceConfig({
+                                ...recurrenceConfig,
+                                count: parseInt(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
               </div>
 
               <div className="flex items-center space-x-2">

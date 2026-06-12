@@ -77,3 +77,44 @@ export async function PATCH(
     );
   }
 }
+
+// 删除日程项（用于跳过休息）
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "未授权" }, { status: 401 });
+    }
+
+    // 检查日程项是否存在且属于当前用户
+    const existingItem = await prisma.scheduleItem.findFirst({
+      where: {
+        id: params.id,
+        schedule: {
+          userId: session.user.id,
+        },
+      },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json({ error: "日程项不存在" }, { status: 404 });
+    }
+
+    // 删除日程项
+    await prisma.scheduleItem.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ message: "日程项已删除" });
+  } catch (error) {
+    console.error("Delete schedule item error:", error);
+    return NextResponse.json(
+      { error: "删除日程项失败" },
+      { status: 500 }
+    );
+  }
+}

@@ -48,6 +48,7 @@ import {
   getTypeIcon,
 } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { SubtaskList } from "@/components/tasks/subtask-list";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -309,6 +310,9 @@ export default function TasksPage() {
                           {task.isFixed && (
                             <Badge variant="secondary">固定时间</Badge>
                           )}
+                          {task.isRecurring && (
+                            <Badge variant="secondary">重复任务</Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -344,6 +348,17 @@ export default function TasksPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+
+                  {/* 子任务列表 */}
+                  {task.children && task.children.length > 0 && (
+                    <div className="mt-4">
+                      <SubtaskList
+                        parentTaskId={task.id}
+                        subtasks={task.children}
+                        onSubtaskUpdate={fetchTasks}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))
