@@ -13,6 +13,7 @@ model User {
   password              String
   name                  String?
   avatarUrl             String?
+  emailVerified         DateTime? // 邮箱验证时间
   defaultWorkStartTime  String    @default("09:00")
   defaultWorkEndTime    String    @default("18:00")
   defaultBreakDuration  Int       @default(15) // minutes
@@ -23,6 +24,11 @@ model User {
   tasks                 Task[]
   schedules             Schedule[]
   linkParses            LinkParse[]
+  auditLogs             AuditLog[]
+  tags                  Tag[]
+  ownedTeams            Team[]        @relation("TeamOwner")
+  teamMemberships       TeamMember[]
+  sharedTasks           SharedTask[]  @relation("TaskSharer")
 }
 
 model Task {
@@ -50,10 +56,85 @@ model Task {
   parent        Task?       @relation("TaskHierarchy", fields: [parentId], references: [id])
   children      Task[]      @relation("TaskHierarchy")
   scheduleItems ScheduleItem[]
+  tags          Tag[]       @relation("TaskTags")
 
   @@index([userId])
   @@index([status])
   @@index([dueDate])
+}
+
+model Tag {
+  id          String      @id @default(cuid())
+  name        String
+  color       String      @default("#3b82f6") // 默认蓝色
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  tasks       Task[]      @relation("TaskTags")
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Team {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  owner       User        @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  members     TeamMember[]
+  sharedTasks SharedTask[]
+
+  @@index([ownerId])
+}
+
+model TeamMember {
+  id          String      @id @default(cuid())
+  role        TeamRole    @default(MEMBER)
+  joinedAt    DateTime    @default(now())
+
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      String
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model SharedTask {
+  id          String      @id @default(cuid())
+  permission  Permission  @default(VIEW)
+  sharedAt    DateTime    @default(now())
+
+  task        Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      String
+  sharedBy    User        @relation(fields: [sharedById], references: [id])
+  sharedById  String
+
+  @@unique([taskId, teamId])
+  @@index([taskId])
+  @@index([teamId])
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum Permission {
+  VIEW
+  EDIT
+  ADMIN
 }
 
 model Schedule {
@@ -101,6 +182,48 @@ model LinkParse {
   userId      String
 
   @@index([userId])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      String      // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entity      String      // task, schedule, user, etc.
+  entityId    String?
+  details     Json?       // 额外的详细信息
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id          String      @id @default(cuid())
+  token       String      @unique
+  email       String
+  expiresAt   DateTime
+  used        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  @@index([token])
+  @@index([email])
+}
+
+model EmailVerificationToken {
+  id          String      @id @default(cuid())
+  token       String      @unique
+  email       String
+  expiresAt   DateTime
+  used        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  @@index([token])
+  @@index([email])
 }
 
 enum Priority {
