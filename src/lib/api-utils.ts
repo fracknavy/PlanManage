@@ -7,11 +7,11 @@ import { ZodError } from "zod";
 /**
  * API 响应类型
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 /**
@@ -33,13 +33,13 @@ export function successResponse<T>(data: T, status: number = 200): NextResponse 
 export function errorResponse(
   message: string,
   status: number = 500,
-  details?: any
+  details?: unknown
 ): NextResponse {
   return NextResponse.json(
     {
       success: false,
       error: message,
-      ...(details && { details }),
+      ...(details !== undefined && { details }),
     },
     { status }
   );
@@ -245,8 +245,8 @@ export function handleApiError(error: unknown): NextResponse {
  * @returns 分页参数
  */
 export function parsePaginationParams(url: URL) {
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = parseInt(url.searchParams.get("limit") || "20");
+  const page = parseInt(url.searchParams.get("page") || "1", 10);
+  const limit = parseInt(url.searchParams.get("limit") || "20", 10);
 
   return {
     page: Math.max(1, page),

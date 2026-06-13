@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { handleApiError } from "@/lib/api-utils";
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1, "Token不能为空"),
@@ -63,21 +64,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: "邮箱验证成功，请登录",
     });
-  } catch (error: any) {
-    console.error("Verify email error:", error);
-
-    if (error.name === "ZodError") {
-      const firstError = error.issues?.[0];
-      const message = firstError?.message || "数据验证失败";
-      return NextResponse.json(
-        { error: message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "处理请求失败" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 }

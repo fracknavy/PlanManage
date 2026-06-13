@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
 import { taskSchema } from "@/validators/schemas";
+import { handleApiError } from "@/lib/api-utils";
 
 // 获取所有任务（支持分页）
 export async function GET(request: Request) {
@@ -17,10 +18,11 @@ export async function GET(request: Request) {
     const status = searchParams.get("status");
     const type = searchParams.get("type");
     const priority = searchParams.get("priority");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
     const search = searchParams.get("search");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId: session.user.id };
 
     if (status) {
@@ -96,22 +98,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(task, { status: 201 });
-  } catch (error: any) {
-    console.error("Create task error:", error);
-
-    // Zod 验证错误
-    if (error.name === "ZodError") {
-      const firstError = error.issues?.[0];
-      const message = firstError?.message || "数据验证失败";
-      return NextResponse.json(
-        { error: message, details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: error.message || "创建任务失败" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 }

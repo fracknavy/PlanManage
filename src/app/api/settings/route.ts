@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
 import { settingsSchema } from "@/validators/schemas";
+import { handleApiError } from "@/lib/api-utils";
 
 // 获取用户设置
 export async function GET() {
@@ -33,11 +34,7 @@ export async function GET() {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Get settings error:", error);
-    return NextResponse.json(
-      { error: "获取设置失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -70,10 +67,6 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Update settings error:", error);
-    return NextResponse.json(
-      { error: "更新设置失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

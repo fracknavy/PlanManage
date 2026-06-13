@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth-options";
 
 // 完成任务
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {

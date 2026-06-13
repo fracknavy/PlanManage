@@ -1,5 +1,10 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import {
+  RATE_LIMIT_INTERVAL_MS,
+  RATE_LIMIT_MAX_REQUESTS,
+  RATE_LIMIT_UNIQUE_TOKENS,
+  RATE_LIMIT_CLEANUP_PROBABILITY,
+} from "./constants";
 
 interface RateLimitConfig {
   interval: number; // 时间窗口（毫秒）
@@ -55,14 +60,13 @@ function getClientIdentifier(request: NextRequest): string {
 export async function rateLimit(
   request: NextRequest,
   config: RateLimitConfig = {
-    interval: 60 * 1000, // 1 分钟
-    uniqueTokenPerInterval: 500,
-    maxRequests: 100,
+    interval: RATE_LIMIT_INTERVAL_MS,
+    uniqueTokenPerInterval: RATE_LIMIT_UNIQUE_TOKENS,
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
   }
 ): Promise<RateLimitResult> {
   // 定期清理缓存
-  if (Math.random() < 0.01) {
-    // 1% 的概率清理
+  if (Math.random() < RATE_LIMIT_CLEANUP_PROBABILITY) {
     cleanupCache();
   }
 

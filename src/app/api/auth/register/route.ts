@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/validators/schemas";
+import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     // 加密密码
-    const hashedPassword = await hash(validatedData.password, 12);
+    const hashedPassword = await hash(validatedData.password, BCRYPT_SALT_ROUNDS);
 
     // 创建用户
     const user = await prisma.user.create({

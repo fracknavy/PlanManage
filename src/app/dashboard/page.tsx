@@ -10,7 +10,6 @@ import {
   Calendar,
   ListTodo,
   Clock,
-  CheckCircle2,
   AlertCircle,
   Plus,
   ArrowRight

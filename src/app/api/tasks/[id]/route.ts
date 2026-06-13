@@ -3,10 +3,11 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
 import { updateTaskSchema } from "@/validators/schemas";
+import { handleApiError } from "@/lib/api-utils";
 
 // 获取单个任务
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -33,11 +34,7 @@ export async function GET(
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error("Get task error:", error);
-    return NextResponse.json(
-      { error: "获取任务失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -75,11 +72,7 @@ export async function PATCH(
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error("Update task error:", error);
-    return NextResponse.json(
-      { error: "更新任务失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -113,10 +106,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: "任务已删除" });
   } catch (error) {
-    console.error("Delete task error:", error);
-    return NextResponse.json(
-      { error: "删除任务失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

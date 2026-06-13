@@ -8,7 +8,7 @@ export interface NotificationOptions {
   icon?: string;
   badge?: string;
   tag?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   requireInteraction?: boolean;
   silent?: boolean;
 }
@@ -244,7 +244,7 @@ export class NotificationManager {
    * 清除所有提醒
    */
   clearAllReminders(): void {
-    for (const [taskId, timerId] of this.reminders.entries()) {
+    for (const timerId of this.reminders.values()) {
       clearTaskReminder(timerId);
     }
     this.reminders.clear();

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Header } from "./header";
 import { Sidebar } from "./sidebar";
-import { MobileNav } from "./mobile-nav";
 import { User } from "@/types";
 import { useUserSettings } from "@/hooks/use-user-settings";
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
@@ -27,16 +26,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   Calendar,
-  Clock,
   RefreshCw,
   GripVertical,
   Coffee,
   CheckCircle2,
-  Play,
-  Pause,
   Plus,
 } from "lucide-react";
-import { Schedule, ScheduleItem, Task } from "@/types";
+import { Schedule, ScheduleItem } from "@/types";
 import { formatDate, formatTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { BreakTimer } from "@/components/schedule/break-timer";

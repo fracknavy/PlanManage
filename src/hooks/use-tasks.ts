@@ -31,7 +31,7 @@ export function useTasks(options: UseTasksOptions = {}) {
       }
 
       const data = await response.json();
-      setTasks(data);
+      setTasks(data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "未知错误");
     } finally {

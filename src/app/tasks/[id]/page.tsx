@@ -334,7 +334,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        weight: parseInt(e.target.value) || 5,
+                        weight: parseInt(e.target.value, 10) || 5,
                       })
                     }
                   />
@@ -481,7 +481,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                             onChange={(e) =>
                               setRecurrenceConfig({
                                 ...recurrenceConfig,
-                                interval: parseInt(e.target.value) || 1,
+                                interval: parseInt(e.target.value, 10) || 1,
                               })
                             }
                           />
@@ -504,7 +504,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                             onChange={(e) =>
                               setRecurrenceConfig({
                                 ...recurrenceConfig,
-                                count: parseInt(e.target.value) || 0,
+                                count: parseInt(e.target.value, 10) || 0,
                               })
                             }
                           />

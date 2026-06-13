@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
 import { z } from "zod";
+import { handleApiError } from "@/lib/api-utils";
 
 const teamSchema = z.object({
   name: z.string().min(1, "团队名称不能为空").max(100, "团队名称不能超过100个字符"),
@@ -10,7 +11,7 @@ const teamSchema = z.object({
 });
 
 // 获取用户的所有团队
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -89,11 +90,7 @@ export async function GET(request: Request) {
       })),
     });
   } catch (error) {
-    console.error("Get teams error:", error);
-    return NextResponse.json(
-      { error: "获取团队失败" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -138,21 +135,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(team, { status: 201 });
-  } catch (error: any) {
-    console.error("Create team error:", error);
-
-    if (error.name === "ZodError") {
-      const firstError = error.issues?.[0];
-      const message = firstError?.message || "数据验证失败";
-      return NextResponse.json(
-        { error: message, details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "创建团队失败" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 }

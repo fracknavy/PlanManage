@@ -3,6 +3,7 @@ import { Task, Schedule, ScheduleItem } from "@/types";
 /**
  * 将数据转换为 CSV 格式
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertToCSV(data: any[], headers: string[]): string {
   const csvRows = [];
 
@@ -187,7 +188,7 @@ export function exportToICal(tasks: Task[]): void {
     if (!task.dueDate) continue;
 
     const dueDate = new Date(task.dueDate);
-    const dateStr = dueDate.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const dateStr = `${dueDate.toISOString().replace(/[-:]/g, "").split(".")[0]  }Z`;
 
     lines.push("BEGIN:VEVENT");
     lines.push(`DTSTART:${dateStr}`);
@@ -235,6 +236,7 @@ export function importTasksFromJSON(json: string): Task[] | null {
   try {
     const data = JSON.parse(json);
     if (data.tasks && Array.isArray(data.tasks)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.tasks.map((task: any) => ({
         ...task,
         dueDate: task.dueDate ? new Date(task.dueDate) : null,

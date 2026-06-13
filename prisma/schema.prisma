@@ -56,6 +56,7 @@ model Task {
   parent        Task?       @relation("TaskHierarchy", fields: [parentId], references: [id])
   children      Task[]      @relation("TaskHierarchy")
   scheduleItems ScheduleItem[]
+  sharedTasks   SharedTask[] @relation("SharedTaskTask")
   tags          Tag[]       @relation("TaskTags")
 
   @@index([userId])
@@ -85,7 +86,7 @@ model Team {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  owner       User        @relation(fields: [ownerId], references: [id])
+  owner       User        @relation("TeamOwner", fields: [ownerId], references: [id])
   ownerId     String
   members     TeamMember[]
   sharedTasks SharedTask[]
@@ -113,11 +114,11 @@ model SharedTask {
   permission  Permission  @default(VIEW)
   sharedAt    DateTime    @default(now())
 
-  task        Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task        Task        @relation("SharedTaskTask", fields: [taskId], references: [id], onDelete: Cascade)
   taskId      String
   team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId      String
-  sharedBy    User        @relation(fields: [sharedById], references: [id])
+  sharedBy    User        @relation("TaskSharer", fields: [sharedById], references: [id])
   sharedById  String
 
   @@unique([taskId, teamId])

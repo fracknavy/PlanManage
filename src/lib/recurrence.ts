@@ -1,4 +1,4 @@
-import { RRule, RRuleSet, rrulestr } from "rrule";
+import { RRule, rrulestr } from "rrule";
 
 export type RecurrenceFrequency = "daily" | "weekly" | "monthly";
 
@@ -31,7 +31,7 @@ export function createRecurrenceRule(config: RecurrenceConfig): string {
       freq = RRule.DAILY;
   }
 
-  const options: any = {
+  const options: Record<string, unknown> = {
     freq,
     interval,
   };
@@ -87,7 +87,7 @@ export function getNextOccurrence(
 export function getFutureOccurrences(
   ruleString: string,
   count: number = 5,
-  after: Date = new Date()
+  _after: Date = new Date()
 ): Date[] {
   try {
     const rule = parseRecurrenceRule(ruleString);

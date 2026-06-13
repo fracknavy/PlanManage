@@ -245,8 +245,8 @@ export class InputValidator {
    */
   static isUrl(url: string): boolean {
     try {
-      new URL(url);
-      return true;
+      const parsed = new URL(url);
+      return !!parsed;
     } catch {
       return false;
     }

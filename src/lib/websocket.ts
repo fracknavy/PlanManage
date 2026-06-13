@@ -15,7 +15,7 @@ export type MessageType =
 
 export interface WebSocketMessage {
   type: MessageType;
-  payload: any;
+  payload: unknown;
   userId: string;
   timestamp: number;
 }

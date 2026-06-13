@@ -16,8 +16,6 @@ interface HealthCheckResult {
 }
 
 export async function GET() {
-  const startTime = Date.now();
-
   try {
     // 检查数据库连接
     const dbStart = Date.now();

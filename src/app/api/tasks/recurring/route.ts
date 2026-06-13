@@ -65,6 +65,7 @@ export async function POST(request: Request) {
     );
 
     // 生成新的重复任务
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newTasks: any[] = [];
     let currentDate = now;
 
@@ -129,9 +130,8 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const daysAhead = parseInt(searchParams.get("daysAhead") || "7");
+    const daysAhead = parseInt(searchParams.get("daysAhead") || "7", 10);
 
-    const now = new Date();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + daysAhead);
 
@@ -145,7 +145,7 @@ export async function GET(request: Request) {
     });
 
     // 按重复规则分组
-    const groupedTasks: Record<string, any[]> = {};
+    const groupedTasks: Record<string, typeof recurringTasks> = {};
     recurringTasks.forEach((task) => {
       const key = `${task.title}-${task.recurrenceRule}`;
       if (!groupedTasks[key]) {

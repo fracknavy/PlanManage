@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import {
   CheckCircle2,
-  Clock,
   Plus,
   Trash2,
   ChevronDown,

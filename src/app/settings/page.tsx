@@ -7,9 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { Settings, Clock, Coffee, Weight, User } from "lucide-react";
+import { Clock, Coffee, Weight, User } from "lucide-react";
 
 interface UserSettings {
   id: string;
@@ -210,7 +209,7 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   setSettings({
                     ...settings,
-                    defaultBreakDuration: parseInt(e.target.value) || 15,
+                    defaultBreakDuration: parseInt(e.target.value, 10) || 15,
                   })
                 }
               />
@@ -244,7 +243,7 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   setSettings({
                     ...settings,
-                    defaultTaskWeight: parseInt(e.target.value) || 5,
+                    defaultTaskWeight: parseInt(e.target.value, 10) || 5,
                   })
                 }
               />

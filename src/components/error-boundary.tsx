@@ -52,7 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.reportError(error, errorInfo);
   }
 
-  reportError(error: Error, errorInfo: ErrorInfo) {
+  reportError(_error: Error, _errorInfo: ErrorInfo) {
     // 这里可以集成错误监控服务，如 Sentry
     // Sentry.captureException(error, { extra: errorInfo });
   }

@@ -289,8 +289,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = linkParseSchema.parse(body);
 
-    console.log("Parsing URL:", validatedData.url);
-
     let title: string | null = null;
     let description: string | null = null;
     let image: string | null = null;
@@ -298,7 +296,6 @@ export async function POST(request: Request) {
 
     // 先尝试特殊网站解析器（B站、YouTube等）
     const specialResult = await parseSpecialSite(validatedData.url);
-    console.log("Special site result:", specialResult);
 
     if (specialResult) {
       title = specialResult.title || null;
@@ -322,8 +319,6 @@ export async function POST(request: Request) {
         throw error;
       }
     }
-
-    console.log("Final result:", { title, description, image, favicon });
 
     // 保存解析结果
     const linkParse = await prisma.linkParse.create({

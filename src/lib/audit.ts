@@ -75,6 +75,7 @@ export async function getUserAuditLogs(
     limit = 50,
   } = options || {};
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = { userId };
 
   if (entity) {
@@ -172,6 +173,7 @@ export async function getAuditLogStats(
   startDate?: Date,
   endDate?: Date
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = { userId };
 
   if (startDate || endDate) {

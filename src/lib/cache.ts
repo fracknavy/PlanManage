@@ -1,6 +1,7 @@
 /**
  * 缓存工具
  */
+import { CACHE_DEFAULT_TTL_MS, CACHE_DEFAULT_MAX_SIZE, LOCAL_STORAGE_TTL_MS } from "./constants";
 
 export interface CacheOptions {
   ttl?: number; // 生存时间（毫秒）
@@ -26,7 +27,7 @@ export interface CacheStats {
 /**
  * 内存缓存
  */
-export class MemoryCache<T = any> {
+export class MemoryCache<T = unknown> {
   private cache: Map<string, CacheEntry<T>> = new Map();
   private options: Required<CacheOptions>;
   private stats: {
@@ -41,8 +42,8 @@ export class MemoryCache<T = any> {
 
   constructor(options: CacheOptions = {}) {
     this.options = {
-      ttl: options.ttl || 5 * 60 * 1000, // 默认 5 分钟
-      maxSize: options.maxSize || 1000,
+      ttl: options.ttl || CACHE_DEFAULT_TTL_MS,
+      maxSize: options.maxSize || CACHE_DEFAULT_MAX_SIZE,
       staleWhileRevalidate: options.staleWhileRevalidate || false,
     };
   }
@@ -201,7 +202,7 @@ export class MemoryCache<T = any> {
 /**
  * 本地存储缓存
  */
-export class LocalStorageCache<T = any> {
+export class LocalStorageCache<T = unknown> {
   private prefix: string;
   private defaultTtl: number;
 
@@ -287,16 +288,16 @@ export class LocalStorageCache<T = any> {
 
 // 创建全局缓存实例
 export const memoryCache = new MemoryCache({
-  ttl: 5 * 60 * 1000, // 5 分钟
-  maxSize: 1000,
+  ttl: CACHE_DEFAULT_TTL_MS,
+  maxSize: CACHE_DEFAULT_MAX_SIZE,
 });
 
-export const localStorageCache = new LocalStorageCache("planmanage_", 24 * 60 * 60 * 1000); // 24 小时
+export const localStorageCache = new LocalStorageCache("planmanage_", LOCAL_STORAGE_TTL_MS);
 
 /**
  * 缓存装饰器
  */
-export function cached<T extends (...args: any[]) => any>(
+export function cached<T extends (...args: unknown[]) => unknown>(
   fn: T,
   options: {
     keyGenerator?: (...args: Parameters<T>) => string;
@@ -325,7 +326,7 @@ export function cached<T extends (...args: any[]) => any>(
 /**
  * 异步缓存装饰器
  */
-export function cachedAsync<T extends (...args: any[]) => Promise<any>>(
+export function cachedAsync<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   options: {
     keyGenerator?: (...args: Parameters<T>) => string;

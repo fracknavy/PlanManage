@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { User } from "@/types";
 
 interface UserSettings {
   defaultWorkStartTime: string;
