@@ -7,6 +7,7 @@ import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { User } from "@/types";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface AuthenticatedLayoutProps {
 export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { settings, isLoading: isLoadingSettings } = useUserSettings();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -22,7 +24,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
     }
   }, [status, router]);
 
-  if (status === "loading") {
+  if (status === "loading" || isLoadingSettings) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -39,10 +41,10 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
     email: session.user.email || "",
     name: session.user.name,
     avatarUrl: session.user.image,
-    defaultWorkStartTime: "09:00",
-    defaultWorkEndTime: "18:00",
-    defaultBreakDuration: 15,
-    defaultTaskWeight: 5,
+    defaultWorkStartTime: settings?.defaultWorkStartTime || "09:00",
+    defaultWorkEndTime: settings?.defaultWorkEndTime || "18:00",
+    defaultBreakDuration: settings?.defaultBreakDuration || 15,
+    defaultTaskWeight: settings?.defaultTaskWeight || 5,
   };
 
   return (

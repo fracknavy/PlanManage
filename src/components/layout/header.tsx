@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User as UserType } from "@/types";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
   user: UserType | null;
@@ -90,6 +91,7 @@ export function Header({ user }: HeaderProps) {
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <ThemeToggle />
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
