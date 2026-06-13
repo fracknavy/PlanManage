@@ -26,16 +26,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "clean": "rm -rf .next node_modules",
-    "prepare": "husky install",
-    "cache:check": "next cache check",
-    "cache:optimize": "next cache optimize",
-    "i18n:validate": "next-intl-validate messages",
-    "i18n:check": "next-intl-check messages",
-    "i18n:extract": "next-intl-extract messages",
-    "i18n:lint": "next-intl-lint messages",
-    "i18n:test": "next-intl-test messages",
-    "docs:api": "typedoc --out docs/api src",
-    "docs:components": "react-docgen src/components --out docs/components.json"
+    "prepare": "husky"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
@@ -88,7 +79,7 @@
     "@types/react-dom": "^18",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.0.1",
     "complexity-report": "^2.0.0-alpha",
     "eslint": "^8.57.1",

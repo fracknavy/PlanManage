@@ -2,10 +2,10 @@
   "extends": [
     "next/core-web-vitals",
     "eslint:recommended",
-    "@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
-  "plugins": ["@typescript-eslint", "react", "react-hooks"],
+  "plugins": ["@typescript-eslint", "react"],
   "rules": {
     // TypeScript 规则
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
@@ -95,8 +95,7 @@
     {
       "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
       "env": {
-        "jest": true,
-        "vitest": true
+        "jest": true
       },
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",
