@@ -1,0 +1,163 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "filter": "筛选",
+    "reset": "重置",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "close": "关闭",
+    "yes": "是",
+    "no": "否"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "name": "姓名",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "没有账号？",
+    "hasAccount": "已有账号？",
+    "loginSuccess": "登录成功",
+    "registerSuccess": "注册成功",
+    "logoutSuccess": "已退出登录"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "tasks": "任务",
+    "schedule": "时间表",
+    "links": "链接解析",
+    "settings": "设置"
+  },
+  "tasks": {
+    "title": "任务管理",
+    "new": "新建任务",
+    "edit": "编辑任务",
+    "delete": "删除任务",
+    "complete": "标记完成",
+    "uncomplete": "取消完成",
+    "search": "搜索任务...",
+    "empty": "暂无任务",
+    "emptyDescription": "创建您的第一个任务开始使用",
+    "status": {
+      "NOT_STARTED": "未开始",
+      "IN_PROGRESS": "进行中",
+      "COMPLETED": "已完成",
+      "OVERDUE": "已延期"
+    },
+    "priority": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "URGENT": "紧急"
+    },
+    "type": {
+      "WORK": "工作",
+      "STUDY": "学习",
+      "PERSONAL": "个人",
+      "HEALTH": "健康",
+      "OTHER": "其他"
+    },
+    "fields": {
+      "title": "任务标题",
+      "description": "任务描述",
+      "estimatedTime": "预计耗时（分钟）",
+      "weight": "权重 (1-10)",
+      "priority": "优先级",
+      "type": "任务类型",
+      "dueDate": "截止时间",
+      "sourceUrl": "来源链接",
+      "parentId": "父任务",
+      "isFixed": "固定时间任务",
+      "isRecurring": "重复任务"
+    },
+    "recurring": {
+      "frequency": "重复频率",
+      "interval": "间隔",
+      "count": "重复次数",
+      "daily": "每天",
+      "weekly": "每周",
+      "monthly": "每月"
+    }
+  },
+  "schedule": {
+    "title": "时间表",
+    "today": "今日视图",
+    "week": "周视图",
+    "generate": "重新排程",
+    "generating": "生成中...",
+    "empty": "暂无日程安排",
+    "break": "休息时间",
+    "skipBreak": "跳过休息",
+    "breakTimer": {
+      "title": "休息时间",
+      "start": "开始休息",
+      "pause": "暂停",
+      "resume": "继续",
+      "skip": "跳过",
+      "reset": "重置",
+      "end": "休息结束",
+      "description": "休息一下，放松身心，提高工作效率"
+    }
+  },
+  "links": {
+    "title": "链接解析",
+    "parse": "解析链接",
+    "parsing": "解析中...",
+    "empty": "暂无解析记录",
+    "createTask": "创建任务",
+    "delete": "删除记录"
+  },
+  "settings": {
+    "title": "设置",
+    "workTime": "工作时间",
+    "breakTime": "休息时间",
+    "defaultWeight": "默认权重",
+    "save": "保存设置",
+    "saved": "设置已保存"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "stats": {
+      "totalTasks": "总任务数",
+      "completedTasks": "已完成",
+      "pendingTasks": "待完成",
+      "overdueTasks": "已延期"
+    }
+  },
+  "errors": {
+    "required": "此字段为必填项",
+    "invalidEmail": "请输入有效的邮箱地址",
+    "passwordTooShort": "密码至少6个字符",
+    "passwordMismatch": "两次输入的密码不一致",
+    "networkError": "网络错误，请稍后重试",
+    "serverError": "服务器错误，请稍后重试",
+    "unauthorized": "请先登录",
+    "forbidden": "没有权限执行此操作",
+    "notFound": "资源不存在",
+    "validationError": "数据验证失败"
+  },
+  "notifications": {
+    "taskCreated": "任务已创建",
+    "taskUpdated": "任务已更新",
+    "taskDeleted": "任务已删除",
+    "taskCompleted": "任务已完成",
+    "scheduleGenerated": "时间表已生成",
+    "settingsSaved": "设置已保存",
+    "exportSuccess": "导出成功",
+    "importSuccess": "导入成功"
+  }
+}

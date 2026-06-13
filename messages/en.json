@@ -1,0 +1,163 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "logoutSuccess": "Logged out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "schedule": "Schedule",
+    "links": "Link Parser",
+    "settings": "Settings"
+  },
+  "tasks": {
+    "title": "Task Management",
+    "new": "New Task",
+    "edit": "Edit Task",
+    "delete": "Delete Task",
+    "complete": "Mark Complete",
+    "uncomplete": "Mark Incomplete",
+    "search": "Search tasks...",
+    "empty": "No tasks yet",
+    "emptyDescription": "Create your first task to get started",
+    "status": {
+      "NOT_STARTED": "Not Started",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "OVERDUE": "Overdue"
+    },
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "type": {
+      "WORK": "Work",
+      "STUDY": "Study",
+      "PERSONAL": "Personal",
+      "HEALTH": "Health",
+      "OTHER": "Other"
+    },
+    "fields": {
+      "title": "Task Title",
+      "description": "Description",
+      "estimatedTime": "Estimated Time (minutes)",
+      "weight": "Weight (1-10)",
+      "priority": "Priority",
+      "type": "Task Type",
+      "dueDate": "Due Date",
+      "sourceUrl": "Source URL",
+      "parentId": "Parent Task",
+      "isFixed": "Fixed Time Task",
+      "isRecurring": "Recurring Task"
+    },
+    "recurring": {
+      "frequency": "Frequency",
+      "interval": "Interval",
+      "count": "Count",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    }
+  },
+  "schedule": {
+    "title": "Schedule",
+    "today": "Today",
+    "week": "Week",
+    "generate": "Regenerate",
+    "generating": "Generating...",
+    "empty": "No schedule yet",
+    "break": "Break Time",
+    "skipBreak": "Skip Break",
+    "breakTimer": {
+      "title": "Break Time",
+      "start": "Start Break",
+      "pause": "Pause",
+      "resume": "Resume",
+      "skip": "Skip",
+      "reset": "Reset",
+      "end": "Break Ended",
+      "description": "Take a break, relax, and boost your productivity"
+    }
+  },
+  "links": {
+    "title": "Link Parser",
+    "parse": "Parse Link",
+    "parsing": "Parsing...",
+    "empty": "No parse history",
+    "createTask": "Create Task",
+    "delete": "Delete Record"
+  },
+  "settings": {
+    "title": "Settings",
+    "workTime": "Work Hours",
+    "breakTime": "Break Time",
+    "defaultWeight": "Default Weight",
+    "save": "Save Settings",
+    "saved": "Settings saved"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "totalTasks": "Total Tasks",
+      "completedTasks": "Completed",
+      "pendingTasks": "Pending",
+      "overdueTasks": "Overdue"
+    }
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordMismatch": "Passwords do not match",
+    "networkError": "Network error, please try again later",
+    "serverError": "Server error, please try again later",
+    "unauthorized": "Please login first",
+    "forbidden": "You don't have permission to perform this action",
+    "notFound": "Resource not found",
+    "validationError": "Validation error"
+  },
+  "notifications": {
+    "taskCreated": "Task created",
+    "taskUpdated": "Task updated",
+    "taskDeleted": "Task deleted",
+    "taskCompleted": "Task completed",
+    "scheduleGenerated": "Schedule generated",
+    "settingsSaved": "Settings saved",
+    "exportSuccess": "Export successful",
+    "importSuccess": "Import successful"
+  }
+}
