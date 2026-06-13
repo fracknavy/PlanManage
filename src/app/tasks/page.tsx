@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ import {
   Clock,
   AlertCircle,
   ListTodo,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -50,69 +51,75 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { SubtaskList } from "@/components/tasks/subtask-list";
 
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
   const [priorityFilter, setPriorityFilter] = useState<Priority | "ALL">("ALL");
   const [typeFilter, setTypeFilter] = useState<TaskType | "ALL">("ALL");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  useEffect(() => {
-    filterTasks();
-  }, [tasks, searchQuery, statusFilter, priorityFilter, typeFilter]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async (page: number = 1, append: boolean = false) => {
     try {
-      const response = await fetch("/api/tasks");
+      if (page === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+      });
+
+      if (statusFilter !== "ALL") params.set("status", statusFilter);
+      if (priorityFilter !== "ALL") params.set("priority", priorityFilter);
+      if (typeFilter !== "ALL") params.set("type", typeFilter);
+      if (searchQuery) params.set("search", searchQuery);
+
+      const response = await fetch(`/api/tasks?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
-        setTasks(data);
+        if (append) {
+          setTasks((prev) => [...prev, ...data.data]);
+        } else {
+          setTasks(data.data);
+        }
+        setPagination(data.pagination);
       }
     } catch (error) {
       console.error("Fetch tasks error:", error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  };
+  }, [statusFilter, priorityFilter, typeFilter, searchQuery]);
 
-  const filterTasks = () => {
-    let filtered = [...tasks];
+  useEffect(() => {
+    fetchTasks(1, false);
+  }, [fetchTasks]);
 
-    // 搜索过滤
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (task) =>
-          task.title.toLowerCase().includes(query) ||
-          task.description?.toLowerCase().includes(query)
-      );
+  const handleLoadMore = () => {
+    if (pagination.page < pagination.totalPages) {
+      fetchTasks(pagination.page + 1, true);
     }
-
-    // 状态过滤
-    if (statusFilter !== "ALL") {
-      filtered = filtered.filter((task) => task.status === statusFilter);
-    }
-
-    // 优先级过滤
-    if (priorityFilter !== "ALL") {
-      filtered = filtered.filter((task) => task.priority === priorityFilter);
-    }
-
-    // 类型过滤
-    if (typeFilter !== "ALL") {
-      filtered = filtered.filter((task) => task.type === typeFilter);
-    }
-
-    setFilteredTasks(filtered);
   };
 
   const handleCompleteTask = async (taskId: string) => {
@@ -242,17 +249,17 @@ export default function TasksPage() {
 
         {/* 任务列表 */}
         <div className="space-y-4">
-          {filteredTasks.length === 0 ? (
+          {tasks.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <ListTodo className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-lg font-medium">暂无任务</p>
                 <p className="text-muted-foreground mb-4">
-                  {tasks.length === 0
+                  {pagination.total === 0
                     ? "创建您的第一个任务开始使用"
                     : "没有符合筛选条件的任务"}
                 </p>
-                {tasks.length === 0 && (
+                {pagination.total === 0 && (
                   <Button asChild>
                     <Link href="/tasks/new">
                       <Plus className="mr-2 h-4 w-4" />
@@ -263,105 +270,132 @@ export default function TasksPage() {
               </CardContent>
             </Card>
           ) : (
-            filteredTasks.map((task) => (
-              <Card key={task.id} className="task-card">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="mt-1">
-                        {task.status === "COMPLETED" ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <button
-                            onClick={() => handleCompleteTask(task.id)}
-                            className="h-5 w-5 rounded-full border-2 border-muted-foreground hover:border-primary transition-colors"
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">{getTypeIcon(task.type)}</span>
-                          <h3 className={`font-medium ${task.status === "COMPLETED" ? "line-through text-muted-foreground" : ""}`}>
-                            {task.title}
-                          </h3>
+            <>
+              {tasks.map((task) => (
+                <Card key={task.id} className="task-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
+                        <div className="mt-1">
+                          {task.status === "COMPLETED" ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <button
+                              onClick={() => handleCompleteTask(task.id)}
+                              className="h-5 w-5 rounded-full border-2 border-muted-foreground hover:border-primary transition-colors"
+                            />
+                          )}
                         </div>
-                        {task.description && (
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {task.description}
-                          </p>
-                        )}
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <Badge className={getPriorityColor(task.priority)}>
-                            {task.priority === "URGENT" && <AlertCircle className="mr-1 h-3 w-3" />}
-                            {task.priority}
-                          </Badge>
-                          <Badge className={getStatusColor(task.status)}>
-                            {task.status}
-                          </Badge>
-                          <Badge variant="outline">
-                            <Clock className="mr-1 h-3 w-3" />
-                            {task.estimatedTime}分钟
-                          </Badge>
-                          {task.dueDate && (
-                            <Badge variant="outline">
-                              截止: {formatDate(new Date(task.dueDate))}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl">{getTypeIcon(task.type)}</span>
+                            <h3 className={`font-medium ${task.status === "COMPLETED" ? "line-through text-muted-foreground" : ""}`}>
+                              {task.title}
+                            </h3>
+                          </div>
+                          {task.description && (
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {task.description}
+                            </p>
+                          )}
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <Badge className={getPriorityColor(task.priority)}>
+                              {task.priority === "URGENT" && <AlertCircle className="mr-1 h-3 w-3" />}
+                              {task.priority}
                             </Badge>
-                          )}
-                          {task.isFixed && (
-                            <Badge variant="secondary">固定时间</Badge>
-                          )}
-                          {task.isRecurring && (
-                            <Badge variant="secondary">重复任务</Badge>
-                          )}
+                            <Badge className={getStatusColor(task.status)}>
+                              {task.status}
+                            </Badge>
+                            <Badge variant="outline">
+                              <Clock className="mr-1 h-3 w-3" />
+                              {task.estimatedTime}分钟
+                            </Badge>
+                            {task.dueDate && (
+                              <Badge variant="outline">
+                                截止: {formatDate(new Date(task.dueDate))}
+                              </Badge>
+                            )}
+                            {task.isFixed && (
+                              <Badge variant="secondary">固定时间</Badge>
+                            )}
+                            {task.isRecurring && (
+                              <Badge variant="secondary">重复任务</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/tasks/${task.id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            编辑
-                          </Link>
-                        </DropdownMenuItem>
-                        {task.status !== "COMPLETED" && (
-                          <DropdownMenuItem onClick={() => handleCompleteTask(task.id)}>
-                            <CheckCircle2 className="mr-2 h-4 w-4" />
-                            标记完成
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/tasks/${task.id}`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              编辑
+                            </Link>
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setTaskToDelete(task.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          删除
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* 子任务列表 */}
-                  {task.children && task.children.length > 0 && (
-                    <div className="mt-4">
-                      <SubtaskList
-                        parentTaskId={task.id}
-                        subtasks={task.children}
-                        onSubtaskUpdate={fetchTasks}
-                      />
+                          {task.status !== "COMPLETED" && (
+                            <DropdownMenuItem onClick={() => handleCompleteTask(task.id)}>
+                              <CheckCircle2 className="mr-2 h-4 w-4" />
+                              标记完成
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setTaskToDelete(task.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            删除
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))
+
+                    {/* 子任务列表 */}
+                    {task.children && task.children.length > 0 && (
+                      <div className="mt-4">
+                        <SubtaskList
+                          parentTaskId={task.id}
+                          subtasks={task.children}
+                          onSubtaskUpdate={() => fetchTasks(1, false)}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* 加载更多按钮 */}
+              {pagination.page < pagination.totalPages && (
+                <div className="flex justify-center py-4">
+                  <Button
+                    variant="outline"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        加载中...
+                      </>
+                    ) : (
+                      "加载更多"
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* 分页信息 */}
+              <div className="text-center text-sm text-muted-foreground">
+                共 {pagination.total} 个任务，当前第 {pagination.page} / {pagination.totalPages} 页
+              </div>
+            </>
           )}
         </div>
 

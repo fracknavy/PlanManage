@@ -19,6 +19,7 @@ export const taskSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   dueDate: z.preprocess((val) => {
     if (typeof val === "string" && val) return new Date(val);
+    if (val === null) return undefined;
     return val;
   }, z.date().optional()),
   status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "OVERDUE"]).default("NOT_STARTED"),
@@ -26,24 +27,27 @@ export const taskSchema = z.object({
   isFixed: z.boolean().default(false),
   fixedStart: z.preprocess((val) => {
     if (typeof val === "string" && val) return new Date(val);
+    if (val === null) return undefined;
     return val;
   }, z.date().optional()),
   fixedEnd: z.preprocess((val) => {
     if (typeof val === "string" && val) return new Date(val);
+    if (val === null) return undefined;
     return val;
   }, z.date().optional()),
   sourceUrl: z.preprocess((val) => {
     if (val === "" || val === null || val === undefined) return undefined;
     return val;
   }, z.string().url().optional()),
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
   isRecurring: z.boolean().default(false),
-  recurrenceRule: z.string().optional(),
+  recurrenceRule: z.string().nullable().optional(),
 });
 
 export const updateTaskSchema = taskSchema.partial();
 
 export const settingsSchema = z.object({
+  name: z.string().min(1, "姓名不能为空").optional(),
   defaultWorkStartTime: z.string().regex(/^\d{2}:\d{2}$/, "格式应为 HH:mm"),
   defaultWorkEndTime: z.string().regex(/^\d{2}:\d{2}$/, "格式应为 HH:mm"),
   defaultBreakDuration: z.number().min(5).max(60),

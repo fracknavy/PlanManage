@@ -23,6 +23,14 @@ import { Task } from "@/types";
 import { SubtaskList } from "@/components/tasks/subtask-list";
 import { createRecurrenceRule, parseRecurrenceRule, RecurrenceFrequency } from "@/lib/recurrence";
 
+/** 将分钟数拆分为天/时/分 */
+function splitMinutes(total: number) {
+  const days = Math.floor(total / 1440);
+  const hours = Math.floor((total % 1440) / 60);
+  const minutes = total % 60;
+  return { days, hours, minutes };
+}
+
 export default function EditTaskPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -36,6 +44,12 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     interval: 1,
     count: 0,
   });
+
+  // 预计耗时拆分为天/时/分
+  const [timeDays, setTimeDays] = useState(0);
+  const [timeHours, setTimeHours] = useState(0);
+  const [timeMinutes, setTimeMinutes] = useState(30);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -44,9 +58,11 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     priority: "MEDIUM",
     type: "OTHER",
     isFixed: false,
+    fixedStart: "",
+    fixedEnd: "",
     dueDate: "",
     sourceUrl: "",
-    parentId: "",
+    parentId: "none",
   });
 
   useEffect(() => {
@@ -54,12 +70,17 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     fetchParentTasks();
   }, [params.id]);
 
+  // 同步天/时/分到 estimatedTime（分钟）
+  useEffect(() => {
+    const total = timeDays * 1440 + timeHours * 60 + timeMinutes;
+    setFormData((prev) => ({ ...prev, estimatedTime: Math.max(1, total) }));
+  }, [timeDays, timeHours, timeMinutes]);
+
   const fetchParentTasks = async () => {
     try {
       const response = await fetch("/api/tasks");
       if (response.ok) {
         const data = await response.json();
-        // 只显示没有父任务的任务作为可选父任务，排除当前任务
         setParentTasks(data.filter((task: Task) => !task.parentId && task.id !== params.id));
       }
     } catch (error) {
@@ -73,6 +94,14 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
       if (response.ok) {
         const task = await response.json();
         setCurrentTask(task);
+
+        // 拆分预计耗时
+        const { days, hours, minutes } = splitMinutes(task.estimatedTime || 30);
+        setTimeDays(days);
+        setTimeHours(hours);
+        // 对齐到5分钟
+        setTimeMinutes(Math.round(minutes / 5) * 5);
+
         setFormData({
           title: task.title,
           description: task.description || "",
@@ -81,11 +110,17 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
           priority: task.priority,
           type: task.type,
           isFixed: task.isFixed,
+          fixedStart: task.fixedStart
+            ? new Date(task.fixedStart).toISOString().slice(0, 16)
+            : "",
+          fixedEnd: task.fixedEnd
+            ? new Date(task.fixedEnd).toISOString().slice(0, 16)
+            : "",
           dueDate: task.dueDate
             ? new Date(task.dueDate).toISOString().slice(0, 16)
             : "",
           sourceUrl: task.sourceUrl || "",
-          parentId: task.parentId || "",
+          parentId: task.parentId || "none",
         });
 
         // 加载重复任务配置
@@ -142,7 +177,9 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           ...formData,
           dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
-          parentId: formData.parentId || null,
+          fixedStart: formData.fixedStart ? new Date(formData.fixedStart) : null,
+          fixedEnd: formData.fixedEnd ? new Date(formData.fixedEnd) : null,
+          parentId: formData.parentId === "none" ? null : formData.parentId || null,
           isRecurring,
           recurrenceRule,
         }),
@@ -154,12 +191,14 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
         });
         router.push("/tasks");
       } else {
-        throw new Error("更新失败");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "更新失败");
       }
     } catch (error) {
+      console.error("Update task error:", error);
       toast({
         title: "错误",
-        description: "更新任务失败，请重试",
+        description: error instanceof Error ? error.message : "更新任务失败，请重试",
         variant: "destructive",
       });
     } finally {
@@ -222,24 +261,68 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="estimatedTime">预计耗时（分钟）*</Label>
-                  <Input
-                    id="estimatedTime"
-                    type="number"
-                    min="1"
-                    value={formData.estimatedTime}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        estimatedTime: parseInt(e.target.value) || 30,
-                      })
-                    }
-                    required
-                  />
+              {/* 预计耗时 - 天/时/分选择器 */}
+              <div className="space-y-2">
+                <Label>预计耗时 *</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Select
+                      value={String(timeDays)}
+                      onValueChange={(v) => setTimeDays(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 8 }, (_, i) => (
+                          <SelectItem key={i} value={String(i)}>
+                            {i} 天
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Select
+                      value={String(timeHours)}
+                      onValueChange={(v) => setTimeHours(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <SelectItem key={i} value={String(i)}>
+                            {i} 小时
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Select
+                      value={String(timeMinutes)}
+                      onValueChange={(v) => setTimeMinutes(Number(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <SelectItem key={i * 5} value={String(i * 5)}>
+                            {i * 5} 分钟
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  共 {formData.estimatedTime} 分钟
+                </p>
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="weight">权重 (1-10)</Label>
                   <Input
@@ -253,6 +336,17 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                         ...formData,
                         weight: parseInt(e.target.value) || 5,
                       })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>截止时间</Label>
+                  <Input
+                    type="datetime-local"
+                    value={formData.dueDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, dueDate: e.target.value })
                     }
                   />
                 </div>
@@ -302,18 +396,6 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dueDate">截止时间</Label>
-                <Input
-                  id="dueDate"
-                  type="datetime-local"
-                  value={formData.dueDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dueDate: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="sourceUrl">来源链接</Label>
                 <Input
                   id="sourceUrl"
@@ -338,7 +420,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                     <SelectValue placeholder="选择父任务（创建子任务）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">无父任务</SelectItem>
+                    <SelectItem value="none">无父任务</SelectItem>
                     {parentTasks.map((task) => (
                       <SelectItem key={task.id} value={task.id}>
                         {task.title}
@@ -433,15 +515,47 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isFixed"
-                  checked={formData.isFixed}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, isFixed: checked })
-                  }
-                />
-                <Label htmlFor="isFixed">固定时间任务（不可被自动排程移动）</Label>
+              {/* 固定时间任务 */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isFixed"
+                    checked={formData.isFixed}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isFixed: checked })
+                    }
+                  />
+                  <Label htmlFor="isFixed">固定时间任务（不可被自动排程移动）</Label>
+                </div>
+
+                {formData.isFixed && (
+                  <Card className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>开始时间 *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={formData.fixedStart}
+                          onChange={(e) =>
+                            setFormData({ ...formData, fixedStart: e.target.value })
+                          }
+                          required={formData.isFixed}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>结束时间 *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={formData.fixedEnd}
+                          onChange={(e) =>
+                            setFormData({ ...formData, fixedEnd: e.target.value })
+                          }
+                          required={formData.isFixed}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4">
