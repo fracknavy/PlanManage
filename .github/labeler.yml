@@ -1,0 +1,84 @@
+# Labeler configuration
+# See: https://github.com/actions/labeler
+
+# Add labels to PRs based on file paths
+frontend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/components/**"
+      - "src/app/**"
+      - "src/hooks/**"
+      - "public/**"
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/app/api/**"
+      - "src/lib/**"
+      - "prisma/**"
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "docs/**"
+      - "*.md"
+      - "README.md"
+      - "CHANGELOG.md"
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "package.json"
+      - "package-lock.json"
+
+configuration:
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/**"
+      - "*.config.js"
+      - "*.config.ts"
+      - "tsconfig.json"
+      - "tailwind.config.ts"
+      - "postcss.config.js"
+
+testing:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/test/**"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "**/*.spec.ts"
+      - "**/*.spec.tsx"
+      - "vitest.config.ts"
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/workflows/**"
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".dockerignore"
+
+database:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "prisma/schema.prisma"
+      - "prisma/migrations/**"
+
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/lib/security.ts"
+      - "src/middleware.ts"
+      - "SECURITY.md"
+
+performance:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "src/lib/cache.ts"
+      - "src/lib/monitoring.ts"
+      - "next.config.js"

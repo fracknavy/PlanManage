@@ -1,0 +1,41 @@
+# Auto Assign configuration
+# See: https://github.com/marketplace/actions/auto-assign
+
+# Add reviewers to PRs
+addReviewers: true
+
+# Add assignees to PRs
+addAssignees: author
+
+# Number of reviewers to add
+# Set to 0 to add all matching reviewers
+numberOfReviewers: 2
+
+# Reviewers to add
+reviewers:
+  - "planmanage/core-team"
+
+# Labels to add
+labels:
+  - "needs-review"
+
+# Filter by labels
+filterLabels:
+  include:
+    - "frontend"
+    - "backend"
+    - "documentation"
+    - "dependencies"
+  exclude:
+    - "wip"
+    - "draft"
+
+# Skip if PR is draft
+skipDraft: true
+
+# Auto assign issues
+autoAssignIssues: true
+
+# Assignees for issues
+issueAssignees:
+  - "planmanage/core-team"

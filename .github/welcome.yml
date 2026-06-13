@@ -1,0 +1,36 @@
+# Welcome Bot configuration
+# See: https://github.com/behaviorbot/welcome
+
+# Comment to post on first-time issues
+issueComment: >
+  👋 Welcome to PlanManage! Thank you for your first issue.
+
+  We appreciate your contribution and will review it as soon as possible.
+
+  In the meantime, please:
+  - Check our [documentation](https://github.com/your-username/PlanManage/tree/main/docs)
+  - Read our [contributing guide](https://github.com/your-username/PlanManage/blob/main/CONTRIBUTING.md)
+  - Join our [community discussions](https://github.com/your-username/PlanManage/discussions)
+
+  If you have any questions, feel free to ask!
+
+# Comment to post on first-time PRs
+prComment: >
+  👋 Welcome to PlanManage! Thank you for your first pull request.
+
+  We appreciate your contribution and will review it as soon as possible.
+
+  In the meantime, please:
+  - Make sure your PR follows our [contributing guidelines](https://github.com/your-username/PlanManage/blob/main/CONTRIBUTING.md)
+  - Check that all tests pass
+  - Update documentation if needed
+
+  If you have any questions, feel free to ask!
+
+# Labels to add to first-time issues
+issueLabels:
+  - "first-contribution"
+
+# Labels to add to first-time PRs
+prLabels:
+  - "first-contribution"

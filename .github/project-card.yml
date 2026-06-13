@@ -1,0 +1,51 @@
+# Project Card configuration
+# See: https://github.com/marketplace/actions/github-project-automation
+
+# Project ID (replace with your project ID)
+project: "PlanManage Development"
+
+# Column mappings
+columns:
+  # New issues go to "To Do" column
+  issues:
+    - label: "bug"
+      column: "To Do"
+    - label: "enhancement"
+      column: "To Do"
+    - label: "documentation"
+      column: "To Do"
+    - label: "good first issue"
+      column: "To Do"
+    - label: "help wanted"
+      column: "To Do"
+
+  # PRs go to "In Progress" or "Done" column
+  pull_requests:
+    - label: "wip"
+      column: "In Progress"
+    - label: "draft"
+      column: "In Progress"
+    - label: "needs-review"
+      column: "In Review"
+    - label: "approved"
+      column: "Done"
+    - label: "merged"
+      column: "Done"
+
+  # Issues with specific labels
+  specific_labels:
+    - label: "priority:high"
+      column: "High Priority"
+    - label: "priority:medium"
+      column: "Medium Priority"
+    - label: "priority:low"
+      column: "Low Priority"
+
+  # Issues by status
+  status:
+    - label: "in progress"
+      column: "In Progress"
+    - label: "blocked"
+      column: "Blocked"
+    - label: "ready for review"
+      column: "In Review"

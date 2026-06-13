@@ -1,0 +1,32 @@
+# This is a CODEOWNERS file for the PlanManage project.
+# It defines individuals or teams that are responsible for code in the repository.
+# For more information, see: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @planmanage/core-team
+
+# Frontend components
+/src/components/ @planmanage/frontend
+/src/app/ @planmanage/frontend
+/src/hooks/ @planmanage/frontend
+
+# Backend and API
+/src/app/api/ @planmanage/backend
+/src/lib/ @planmanage/backend
+/prisma/ @planmanage/backend
+
+# Configuration files
+*.config.js @planmanage/devops
+*.config.ts @planmanage/devops
+Dockerfile @planmanage/devops
+docker-compose.yml @planmanage/devops
+.github/ @planmanage/devops
+
+# Documentation
+/docs/ @planmanage/docs
+*.md @planmanage/docs
+
+# Testing
+/src/test/ @planmanage/qa
+*.test.ts @planmanage/qa
+*.spec.ts @planmatch/qa

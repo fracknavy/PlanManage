@@ -1,0 +1,103 @@
+name: Auto Notify
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+  pull_request:
+    types: [opened, closed, review_requested]
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["CI", "Tests", "Security Scanning"]
+    types: [completed]
+
+jobs:
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#notifications",
+              "username": "PlanManage Bot",
+              "icon_emoji": ":bell:",
+              "attachments": [{
+                "color": "${{ github.event.action == 'opened' ? '#36a64f' : github.event.action == 'closed' ? '#ff0000' : '#ffcc00' }}",
+                "title": "${{ github.event_name }}: ${{ github.event.issue.title || github.event.pull_request.title || github.event.release.tag_name }}",
+                "title_link": "${{ github.event.issue.html_url || github.event.pull_request.html_url || github.event.release.html_url }}",
+                "text": "${{ github.event.issue.body || github.event.pull_request.body || github.event.release.body }}",
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Action",
+                    "value": "${{ github.event.action }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Author",
+                    "value": "${{ github.event.issue.user.login || github.event.pull_request.user.login || github.event.release.author.login }}",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  notify-discord:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Discord notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: "Success"
+          title: "${{ github.event_name }}: ${{ github.event.issue.title || github.event.pull_request.title }}"
+
+  notify-email:
+    name: Notify Email
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "New Release: ${{ github.event.release.tag_name }}"
+          body: |
+            A new version of PlanManage has been released!
+
+            Version: ${{ github.event.release.tag_name }}
+            Release Notes: ${{ github.event.release.html_url }}
+
+            Please update your installation.
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: PlanManage <notifications@planmanage.com>
+
+  update-project:
+    name: Update Project
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Update project board
+        uses: alex-page/github-project-automation-plus@v0.8.3
+        with:
+          project: PlanManage Development
+          column: To Do
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

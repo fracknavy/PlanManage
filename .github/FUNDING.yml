@@ -1,0 +1,20 @@
+# Funding configuration
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# GitHub Sponsors
+github: [planmanage]
+
+# Patreon
+patreon: planmanage
+
+# Open Collective
+open_collective: planmanage
+
+# Ko-fi
+ko_fi: planmanage
+
+# Buy Me a Coffee
+buy_me_a_coffee: planmanage
+
+# Custom URLs
+custom: ["https://www.paypal.me/planmanage", "https://www.buymeacoffee.com/planmanage"]

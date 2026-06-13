@@ -1,0 +1,96 @@
+name: Monitoring
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check application health
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ secrets.HEALTH_CHECK_URL || 'http://localhost:3000/api/health' }}
+          method: GET
+          timeout: 30000
+
+      - name: Send notification on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: "#alerts"
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  uptime-monitoring:
+    name: Uptime Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check uptime
+        uses: wei/curl@v1
+        with:
+          args: -s -o /dev/null -w "%{http_code}" ${{ secrets.UPTIME_CHECK_URL || 'http://localhost:3000' }}
+
+      - name: Record uptime
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.check.outputs.stdout }}';
+            console.log(`Status: ${status}`);
+
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance tests
+        run: npm run test:performance
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-report
+          path: performance-report/
+          retention-days: 30
+
+  error-monitoring:
+    name: Error Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check error logs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // This would typically integrate with your error monitoring service
+            // (e.g., Sentry, LogRocket, etc.)
+            console.log('Checking error logs...');
+
+      - name: Send error notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: "#errors"
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

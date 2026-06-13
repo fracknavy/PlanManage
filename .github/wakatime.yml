@@ -1,0 +1,53 @@
+# WakaTime configuration
+# See: https://github.com/marketplace/actions/wakatime-action
+
+# WakaTime API key (stored as secret)
+# wakaApiKey: ${{ secrets.WAKATIME_API_KEY }}
+
+# Project name
+project: "PlanManage"
+
+# Branches to track
+branches:
+  - "main"
+  - "develop"
+
+# Categories to track
+categories:
+  - "coding"
+  - "debugging"
+  - "designing"
+  - "learning"
+  - "planning"
+  - "testing"
+
+# Languages to track
+languages:
+  - "TypeScript"
+  - "JavaScript"
+  - "CSS"
+  - "HTML"
+  - "SQL"
+
+# Editors to track
+editors:
+  - "VS Code"
+  - "WebStorm"
+
+# Operating systems to track
+operatingSystems:
+  - "Windows"
+  - "macOS"
+  - "Linux"
+
+# Time range
+timeRange: "last_7_days"
+
+# Output format
+output: "json"
+
+# Schedule
+schedule:
+  interval: "daily"
+  time: "23:59"
+  timezone: "Asia/Shanghai"
