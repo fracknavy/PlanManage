@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { Settings, Clock, Coffee, Weight } from "lucide-react";
+import { Settings, Clock, Coffee, Weight, User } from "lucide-react";
 
 interface UserSettings {
   id: string;
@@ -23,6 +24,7 @@ interface UserSettings {
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<UserSettings>({
@@ -63,6 +65,7 @@ export default function SettingsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: settings.name,
           defaultWorkStartTime: settings.defaultWorkStartTime,
           defaultWorkEndTime: settings.defaultWorkEndTime,
           defaultBreakDuration: settings.defaultBreakDuration,
@@ -71,6 +74,11 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        // 更新session以同步个人信息
+        await updateSession({
+          name: data.name,
+        });
         toast({
           title: "设置已保存",
         });
@@ -107,7 +115,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <Settings className="h-5 w-5" />
+              <User className="h-5 w-5" />
               <CardTitle>个人信息</CardTitle>
             </div>
             <CardDescription>您的账户基本信息</CardDescription>
@@ -118,8 +126,18 @@ export default function SettingsPage() {
               <Input value={settings.email} disabled />
             </div>
             <div className="space-y-2">
-              <Label>姓名</Label>
-              <Input value={settings.name || ""} disabled />
+              <Label htmlFor="name">姓名</Label>
+              <Input
+                id="name"
+                value={settings.name || ""}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    name: e.target.value,
+                  })
+                }
+                placeholder="请输入姓名"
+              />
             </div>
           </CardContent>
         </Card>
