@@ -1,0 +1,21 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 10000,
+    "wait": 1000,
+    "reporters": ["cli", "json"],
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox"]
+    }
+  },
+  "urls": [
+    "http://localhost:3000",
+    "http://localhost:3000/login",
+    "http://localhost:3000/register",
+    "http://localhost:3000/dashboard",
+    "http://localhost:3000/tasks",
+    "http://localhost:3000/schedule",
+    "http://localhost:3000/links",
+    "http://localhost:3000/settings"
+  ]
+}
