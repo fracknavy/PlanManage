@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Check application health
-        uses: fjogeleit/http-request-action@v1
+        uses: fjogeleit/http-request-action@v2
         with:
           url: ${{ secrets.HEALTH_CHECK_URL || 'http://localhost:3000/api/health' }}
           method: GET
