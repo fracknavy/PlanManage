@@ -7,14 +7,12 @@ on:
     types: [opened, closed, review_requested]
   release:
     types: [published]
-  workflow_run:
-    workflows: ["CI", "Tests", "Security Scanning"]
-    types: [completed]
 
 jobs:
   notify-slack:
     name: Notify Slack
     runs-on: ubuntu-latest
+    if: vars.SLACK_WEBHOOK_URL != ''
 
     steps:
       - name: Send Slack notification
@@ -56,6 +54,7 @@ jobs:
   notify-discord:
     name: Notify Discord
     runs-on: ubuntu-latest
+    if: vars.DISCORD_WEBHOOK_URL != ''
 
     steps:
       - name: Send Discord notification
@@ -64,30 +63,6 @@ jobs:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           status: "Success"
           title: "${{ github.event_name }}: ${{ github.event.issue.title || github.event.pull_request.title }}"
-
-  notify-email:
-    name: Notify Email
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-
-    steps:
-      - name: Send email notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "New Release: ${{ github.event.release.tag_name }}"
-          body: |
-            A new version of PlanManage has been released!
-
-            Version: ${{ github.event.release.tag_name }}
-            Release Notes: ${{ github.event.release.html_url }}
-
-            Please update your installation.
-          to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: PlanManage <notifications@planmanage.com>
 
   update-project:
     name: Update Project
