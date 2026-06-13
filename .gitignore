@@ -131,11 +131,47 @@ dist
 .pnp.*
 
 # Claude
-.claude
+.claude/*
+.claude/settings.local.json
+.claude/auto-*
 auto-backup-suite-*
 auto-test-suite-*
 auto-monitor-suite-*
 auto-notify-suite-*
+
+# Test and Coverage Reports
+coverage/
+test-results/
+playwright-report/
+accessibility-report/
+performance-report/
+complexity-report/
+duplication-report/
+dead-code-report/
+jscpd-report/
+snyk-report/
+gitleaks-report/
+checkov-report/
+docker-bench-report/
+trivy-report/
+lighthouse-report/
+.lighthouseci/
+
+# Build Analysis
+.next/analyze/
+bundle-analysis/
+
+# Documentation Generation
+docs/api/
+docs/components.json
+
+# Report Files
+outdated-report.json
+license-report.json
+
+# Backup Files
+files-backup-*.tar.gz
+planmanage.tar
 
 # Database files
 *.db
